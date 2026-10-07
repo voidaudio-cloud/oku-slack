@@ -53,3 +53,28 @@ avatar = "kalousek.png"
 # optional legacy blame follow-up (top-level blame_followup = true, off by default).
 blame_only = true
 blame_patterns = ["za to může", "může za to", "může za", "kvůli kalousk", "vina kalousk", "kalousek za", "zavinil", "kalousek to"]
+
+# --- TTS (prototype). Generic character-type prebuilt voices, NOT imitations of real people.
+# Strict 1:1: every persona has its own voice, no sharing, no default/fallback voice (validated in tts.validate).
+[tts]
+enabled = false
+models = ["gemini-3.8-flash-tts", "gemini-2.5-flash-preview-tts"]
+
+[tts.voices.babis]
+voice = "Orus"
+style = "Mluv česky jako starší, sebevědomý a důrazný muž, rázně a přesvědčivě:"
+[tts.voices.alenka]
+voice = "Laomedeia"
+style = "Mluv česky jako vřelá, veselá a energická žena s úsměvem v hlase:"
+[tts.voices.bourak]
+voice = "Fenrir"
+style = "Mluv česky jako hlasitý, nadšený a energický mladý muž:"
+[tts.voices.marty]
+voice = "Algieba"
+style = "Mluv česky jako uhlazený, sametový producent, klidně a sebejistě:"
+[tts.voices.peta]
+voice = "Puck"
+style = "Mluv česky jako bublinkový, výrazný a teatrální muž plný emocí:"
+[tts.voices.kalousek]
+voice = "Algenib"
+style = "Mluv česky jako suchý, strohý muž s hlubokým hlasem, bez emocí:"
