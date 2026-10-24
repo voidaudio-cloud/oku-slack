@@ -1,0 +1,8 @@
+# One environment that can run the WHOLE test suite (bridge + wheel + world).
+# python -m venv .venv-dev && .venv-dev/bin/python -m pip install -r requirements-dev.txt
+requests>=2.31
+pillow>=10
+aiohttp>=3.9
+slack_bolt>=1.18
+slack_sdk>=3.27
+pytest>=8

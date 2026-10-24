@@ -1,5 +1,5 @@
 """Pure logic: config, persona prompts, routing, LLM call. No Slack imports (unit-testable)."""
-import json, os, re, pathlib, tomllib, logging, time, requests
+import json, os, re, pathlib, tomllib, logging, time
 from . import usage
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -47,8 +47,11 @@ def icon_url(cfg, p):
     base = cfg.get("icon_base_url", "").strip()
     return f"{base.rstrip('/')}/{p['avatar']}" if base and p.get("avatar") else None
 
-def llm(system, history, post=requests.post):
+def llm(system, history, post=None):
     t0 = time.monotonic(); model = os.environ.get("LLM_MODEL", "grok-4")
+    if post is None:  # lazy: requests is only needed when no transport is injected (wheel venv runs without it at import)
+        import requests
+        post = requests.post
     r = post(os.environ.get("LLM_BASE_URL", "https://api.x.ai/v1").rstrip("/") + "/chat/completions",
              headers={"Authorization": "Bearer " + os.environ["LLM_API_KEY"]},
              json={"model": os.environ.get("LLM_MODEL", "grok-4"),
@@ -86,13 +89,16 @@ def gemini_settings():
     model = os.environ.get("LLM_MODEL") or get("GEMINI_MODEL") or "gemini-2.5-flash"
     return keys, list(dict.fromkeys([model] + GEMINI_FALLBACK_MODELS))
 
-def gemini(system, history, post=requests.post, rounds=3, sleep=None):
+def gemini(system, history, post=None, rounds=3, sleep=None):
     """Model-major, key-minor (like Umbra): try best model on every key before degrading.
     If everything is rate-limited, back off (exponential + jitter) and sweep again."""
     import random
     sleep = sleep or time.sleep
     keys, models = gemini_settings()
     if not keys: raise RuntimeError("no GEMINI_API_KEY(S)")
+    if post is None:  # lazy import, only when no transport is injected
+        import requests
+        post = requests.post
     contents = [{"role": "model" if m["role"] == "assistant" else "user", "parts": [{"text": m["content"] or "-"}]} for m in history]
     body = {"systemInstruction": {"parts": [{"text": system}]}, "contents": contents or [{"role": "user", "parts": [{"text": "-"}]}]}
     last = None
