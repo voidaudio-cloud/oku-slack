@@ -128,6 +128,19 @@ The engine tails the diary (kv `consequence:seq`) and, for every rule matching a
 Starter rules: `wheel.expired` → Kampaň −3 and host→missing players −1; `wheel.done` → Kampaň +3 (`kantyna` also Hranolky +40); `wheel.vetoed` → Kampaň −2; porada held (`porada.started`/`porada.dry_run`) → Dotace +250, Hranolky −10 (catering); podnet reacted (`podnet.started`/`podnet.dry_run`) → Lajky +100 (videos/streams also Kampaň +2); every chatter → rapport +1 between all participants; blame chatter (`KALOUSEK_VINA`, `PROPADLA_AKCE`) → Kalousek blame +1 and lead→others −2; canteen chatter → Hranolky −5; campaign chatter → Kampaň +2; viral chatter → Lajky +30.
 Rows marked `test: true` (test podnets) never trigger consequences. `include_dry_run = true`: dry-run rows count as if the action happened (the row says `dry_run: true`), so the dry run shows world dynamics. **Kampaň fix:** seed 60 (was 35) and `kampan_low = 40` (was 50), `hranolky_low = 60`; the porada topic and chatter storylet facts read these thresholds.
 
+## Readout (P-008; `world/report.py` + `scripts/world_report.py`)
+Answers: did the autonomy work, what did it cost, and what caused what. Read-only over `logs/world.jsonl`; it never writes, deletes or re-keys a row. Stdlib only.
+- Run: `python -m oku_slack.world.report --days 7` (Markdown; `--format json` for the dict, `--logs-dir DIR` for another diary). `python scripts/world_report.py` prints the same report.
+- Output: period, posts and LLM cost (`bridge.reply` rows: calls, `est_usd` from numeric values only, template fallbacks), per-source row counts, H1-H6 with their values, the top channels and personas.
+- Causal chains: `causal_chain(rows, "we_0042")` returns the row plus its ancestors via `causal_parents`, oldest first; a missing parent is skipped.
+- H1-H6 as implemented (value 0.0 where the diary has no rows yet, and the label says so):
+  - H1: human reactions per post within 2 h (`reaction` rows on the post's subject), real-life posts (`podnet`, `news`) vs chatter.
+  - H2: share of positive reactions on posts with a memory brief (`brief_chars > 0`) vs without. Positive means `payload.polarity == "positive"`; no row carries it yet, so the value is 0.0.
+  - H3: kill or silence rows per week (`budget.denied` with a `kill_switch` reason, `world.kill`).
+  - H4: non-material actions per day (reactions, choices, bridge replies), posts per day, both by regime.
+  - H5: active human days (days with a reaction or choice that has an actor); commitments made are counted from `commitment.made` rows, none exist yet.
+  - H6: live rate of wheel rounds (`wheel.live` over live, done, expired and vetoed); invitations accepted (`wheel.invite.accepted`) are counted, none exist yet (P-006 bonus round not built).
+
 ## Go-live
 **Stage 0: dry run from the worktree (now).** `C:\code\heimdall\services.d\oku_world.toml` sets `cwd = C:\code\oku-slack-world`, uses `C:\code\oku-slack\.venv-wheel\Scripts\python.exe`, `OKU_WORLD_SOURCE_LOGS = C:\code\oku-slack\logs` (reads the live usage.jsonl, wheel outbox and wheel.sqlite3 read-only; the diary stays in the worktree's `logs`), `autostart = false`.
 - Start oku_world through Heimdall, then check `http://127.0.0.1:8798/healthz` and `/api/budget`.
