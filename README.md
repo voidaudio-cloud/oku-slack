@@ -8,7 +8,9 @@ Kalousek is blame-only: if the message blames him (alias + blame pattern), he ad
 Secrets: per-persona Slack tokens SLACK_OKU_<KEY>_BOT_TOKEN / SLACK_OKU_<KEY>_APP_TOKEN (user env, KEY = BABIS, ALENKA, BOURAK, MARTY, PETA, KALOUSEK); babis falls back to legacy SLACK_OKU_BOT_TOKEN / SLACK_OKU_APP_TOKEN. Personas without tokens are skipped (logged). LLM: LLM_BACKEND=gemini (default) uses GEMINI_API_KEY(S)/GEMINI_MODEL from env or OKU_GEMINI_ENV_FILE (Umbra bot\.env, only those names read); LLM_BACKEND=openai uses LLM_API_KEY/LLM_BASE_URL/LLM_MODEL.
 Optional env: `LLM_BASE_URL` (https://api.x.ai/v1), `LLM_MODEL` (grok-4), `OKU_CONFIG`, `OKU_PERSONA_DIR`.
 
-Run: `.venv\Scripts\python.exe -m oku_slack.bridge`   Tests (all, incl. wheel; `.venv` lacks Pillow): `.venv-wheel\Scripts\python.exe -m pytest -q -p no:cacheprovider`
+Run: `.venv\Scripts\python.exe -m oku_slack.bridge`
+Tests (whole suite, ONE environment): `python -m venv .venv-dev && .venv-dev/bin/python -m pip install -r requirements-dev.txt && .venv-dev/bin/python -m pytest -q -p no:cacheprovider`; Windows: `python -m venv .venv-dev && .venv-dev\Scripts\python.exe -m pip install -r requirements-dev.txt && .venv-dev\Scripts\python.exe -m pytest -q -p no:cacheprovider`. The wheel venv `.venv-wheel` (requirements-wheel.txt) now also installs requests; the bridge `.venv` stays lean (no Pillow, no aiohttp).
+Dependency guard: `python scripts/check_deps.py` exits non-zero if any third-party import under oku_slack/ is not declared for its runtime (bridge: requirements.txt, wheel: requirements-wheel.txt).
 Avatars in `assets/avatars`; set `icon_base_url` only once they are hosted at a public https URL.
 
 
