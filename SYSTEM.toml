@@ -1,0 +1,88 @@
+schema_version = 1
+
+[system]
+id = "oku-slack"
+name = "OKU Slack bridge"
+kind = "service"
+lifecycle = "active"
+family = "void-apps"
+owner = "Kore"
+repo = "https://github.com/voidaudio-cloud/oku-slack"
+default_branch = "main"
+
+[intent]
+purpose = "An always-on Slack bridge for the OKU satire team: one Socket Mode app per parody persona, all served by one process, supervised by Heimdall through services.d\\oku_slack.toml."
+goal = "A mention or a DM reaches the right persona as that persona and nothing else, and the wheel-of-fortune web room keeps running beside it on its own virtual environment."
+users = ["Kore (owner)", "the OKU persona operators (BABI, ALENKA, BOURAK, MARTY, PETA, KALOUSEK)"]
+
+[scope]
+in = [
+  "the Slack Socket Mode bridge (oku_slack.bridge): mention and DM routing, per-persona manifests and avatars, the loop guard and the blame-only follow-up",
+  "the wheel of fortune and its web room, which run as a separate service with their own virtual environment (docs/WHEEL.md)",
+  "the per-persona test suite that covers the bridge, the wheel and the world",
+]
+out = [
+  "hosting anything outside the OKU persona set",
+  "the Heimdall service record itself, which belongs to the heimdall repository",
+]
+constraints = [
+  "per-persona Slack tokens come from the operator environment; the repository never stores a secret",
+  "the wheel room runs from its own virtual environment, not from .venv",
+]
+
+[[requirements]]
+id = "OKU-R1"
+text = "The full test suite, including the wheel, shall pass."
+type = "functional"
+priority = "must"
+status = "implemented"
+verification = "test"
+source = "README.md"
+rationale = "Measured 2026-10-31 on the host: '.venv-wheel\\Scripts\\python.exe -m pytest -q -p no:cacheprovider' reported 306 passed and 4 warnings in 51.41 s with exit 0. The wheel virtual environment is required because .venv lacks Pillow."
+
+[[requirements]]
+id = "OKU-R2"
+text = "A persona shall answer only as itself: no username or icon override, and no reply to the bridge's own bot messages."
+type = "functional"
+priority = "must"
+status = "implemented"
+verification = "test"
+source = "README.md"
+
+[[requirements]]
+id = "OKU-R3"
+text = "Routing shall resolve a mention or DM in the order: first persona alias found in the text, else channel_defaults for that channel, else the default persona."
+type = "functional"
+priority = "must"
+status = "implemented"
+verification = "test"
+source = "README.md"
+
+[[requirements]]
+id = "OKU-R4"
+text = "A persona without its Slack token shall be skipped and logged, and the bridge shall keep serving the remaining personas."
+type = "functional"
+priority = "should"
+status = "implemented"
+verification = "test"
+source = "README.md"
+
+[run]
+runtime = ["python3", "pytest", "aiohttp", "slack-sdk"]
+setup = ""
+test = ".venv-wheel\\Scripts\\python.exe -m pytest -q -p no:cacheprovider"
+build = ""
+start = ".venv\\Scripts\\python.exe -m oku_slack.bridge"
+
+[interfaces]
+provides = ["files:manifests/", "files:assets/avatars/", "files:persona/"]
+consumes = ["files:players.toml", "files:players.local.toml", "files:config.toml"]
+
+[readiness]
+external = true
+
+[meta]
+declared_at = "2026-10-31"
+declared_by = "builder seat mcode"
+reviewed_by = ""
+evidence_refs = ["README.md", "slack-manifest.yaml", "tests/", "docs/WHEEL.md"]
